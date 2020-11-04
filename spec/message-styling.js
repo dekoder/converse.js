@@ -1,6 +1,6 @@
 /*global mock, converse */
 
-const u = converse.env.u;
+const { u, $msg } = converse.env;
 
 describe("A incoming chat Message", function () {
 
@@ -11,10 +11,25 @@ describe("A incoming chat Message", function () {
         done();
     }));
 
-    it("can have styling disabled",
+    fit("can have styling disabled",
         mock.initConverse(['rosterGroupsFetched', 'chatBoxesFetched'], {},
-            function (done) {
+            async function (done, _converse) {
 
+        const include_nick = false;
+        await mock.waitForRoster(_converse, 'current', 2, include_nick);
+        await mock.openControlBox(_converse);
+
+        const msgtext = '> _ >';
+        const sender_jid = mock.cur_names[1].replace(/ /g,'.').toLowerCase() + '@montague.lit';
+        const msg = $msg({
+                'from': sender_jid,
+                'id': u.getUniqueId(),
+                'to': _converse.connection.jid,
+                'type': 'chat',
+                'xmlns': 'jabber:client'
+            }).c('body').t(msgtext).tree();
+
+        await _converse.handleMessageStanza(msg);
         done();
     }));
 });
